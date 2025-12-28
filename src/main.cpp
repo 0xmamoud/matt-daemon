@@ -1,4 +1,6 @@
 #include "matt_daemon.hpp"
+#include "tintin_reporter.hpp"
+#include "sighandler.hpp"
 
 void checkRoot() {
 	if (getuid() != 0) {
@@ -15,6 +17,8 @@ int main(void) {
 			std::cerr << "Failed to create daemon" << std::endl;
 			return 1;
 		}	
+
+		SignalHandler::setup();
 
 		// TODO: server loop
 
