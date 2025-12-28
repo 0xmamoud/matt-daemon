@@ -1,6 +1,7 @@
-#ifndef MATT_DAEMON_H
-#define MATT_DAEMON_H
+#ifndef MATT_DAEMON_HPP
+#define MATT_DAEMON_HPP
 
+#include "tintin_reporter.hpp"
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -19,7 +20,17 @@
 
 #define PORT 4242
 #define MAX_CLIENTS 3
-#define LOG_FILE "/var/log/matt_daemon/matt_daemon.log"
 #define LOCK_FILE "/var/lock/matt_daemon.lock"
+
+class MattDaemon {
+public:
+	MattDaemon();
+	~MattDaemon();
+
+	int createDaemon();
+
+private:
+	int lockFd;
+};
 
 #endif
