@@ -9,6 +9,7 @@ RUN apt-get update && apt-get install -y \
     gdb \
     valgrind \
     net-tools \
+    netcat \
     vim \
     curl \
     && rm -rf /var/lib/apt/lists/*
