@@ -20,7 +20,12 @@ int main(void) {
 
 		SignalHandler::setup();
 
-		// TODO: server loop
+		if (daemon.createServer() < 0) {
+			TintinReporter::error("Failed to create server");
+			return 1;
+		}
+
+		daemon.runServer();
 
 	} catch (const std::exception& e) {
 		TintinReporter::fatal(std::string("Matt Daemon ") + e.what());

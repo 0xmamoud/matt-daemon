@@ -16,7 +16,9 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/file.h>
+#include <sys/epoll.h>
 #include <stdexcept>
+#include <cerrno>
 
 #define PORT 4242
 #define MAX_CLIENTS 3
@@ -28,9 +30,13 @@ public:
 	~MattDaemon();
 
 	int createDaemon();
+	int createServer();
+	void runServer();
 
 private:
 	int lockFd;
+	int serverFd;
+	int epollFd;
 };
 
 #endif
