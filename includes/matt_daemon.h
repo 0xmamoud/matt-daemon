@@ -14,6 +14,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <sys/file.h>
+#include <stdexcept>
 
 #define PORT 4242
 #define MAX_CLIENTS 3
