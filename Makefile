@@ -10,7 +10,8 @@ SRC_DIR		= src
 OBJ_DIR		= obj
 INC_DIR		= includes
 
-SRCS		= main.cpp
+SRCS		= main.cpp \
+			  tintin_reporter.cpp
 
 # Object files
 OBJS		= $(addprefix $(OBJ_DIR)/, $(SRCS:.cpp=.o))
