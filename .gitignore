@@ -1,0 +1,19 @@
+# Compiled files
+*.o
+obj/
+
+# Binary
+matt_daemon
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Archives
+*.tar.gz
+*.zip

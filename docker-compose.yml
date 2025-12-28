@@ -1,0 +1,15 @@
+services:
+  matt_daemon:
+    build: .
+    container_name: matt_daemon
+    volumes:
+      - .:/matt_daemon
+    # Privileged mode for daemon operations
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    stdin_open: true
+    tty: true
+    network_mode: bridge
+    command: /bin/bash

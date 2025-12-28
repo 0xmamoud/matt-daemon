@@ -1,0 +1,10 @@
+.git
+.gitignore
+*.o
+obj/
+matt_daemon
+*.tar.gz
+.DS_Store
+.vscode
+*.swp
+*.swo
