@@ -1,7 +1,7 @@
 #include "matt_daemon.hpp"
 #include "sighandler.hpp"
 
-MattDaemon::MattDaemon() : serverFd(-1), epollFd(-1) {
+MattDaemon::MattDaemon() : serverFd(-1), epollFd(-1), clientCount(0) {
 	lockFd = open(LOCK_FILE, O_CREAT | O_RDWR, 0644);
 	if (lockFd < 0) {
 		throw std::runtime_error("Cannot open lock file");
@@ -118,12 +118,62 @@ void MattDaemon::runServer() {
 
 		for (int i = 0; i < nfds; i++) {
 			if (events[i].data.fd == serverFd) {
-				// TODO: handleNewConnection()
+				handleNewConnection();
 			} else {
-				// TODO: handleMessage(events[i].data.fd)
+				handleMessage(events[i].data.fd);
 			}
 		}
 	}
 
 	TintinReporter::info("Server stopped");
+}
+
+void MattDaemon::handleNewConnection() {
+	int clientFd = accept4(serverFd, nullptr, nullptr, SOCK_NONBLOCK);
+	if (clientFd < 0) {
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
+			TintinReporter::error("Accept failed");
+		return;
+	}
+
+	if (clientCount >= MAX_CLIENTS) {
+		close(clientFd);
+		TintinReporter::warn("Max clients reached, connection refused");
+		return;
+	}
+
+	struct epoll_event ev;
+	ev.events = EPOLLIN;
+	ev.data.fd = clientFd;
+	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &ev) < 0) {
+		close(clientFd);
+		TintinReporter::error("epoll_ctl ADD failed");
+		return;
+	}
+
+	clientCount++;
+	TintinReporter::info("Client connected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
+}
+
+void MattDaemon::handleMessage(int clientFd) {
+	char buffer[1024];
+	ssize_t bytes = recv(clientFd, buffer, sizeof(buffer) - 1, 0);
+
+	if (bytes <= 0) {
+		epoll_ctl(epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
+		close(clientFd);
+		clientCount--;
+		TintinReporter::info("Client disconnected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
+		return;
+	}
+
+	buffer[bytes] = '\0';
+
+	std::string msg(buffer);
+	TintinReporter::log(msg);
+
+	if (msg == "quit") {
+		TintinReporter::info("Quit command received");
+		SignalHandler::stop();
+	}
 }

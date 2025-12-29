@@ -37,6 +37,10 @@ private:
 	int lockFd;
 	int serverFd;
 	int epollFd;
+	int clientCount;
+
+	void handleNewConnection();
+	void handleMessage(int clientFd);
 };
 
 #endif
