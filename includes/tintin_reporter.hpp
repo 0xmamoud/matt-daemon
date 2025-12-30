@@ -11,6 +11,7 @@
 
 class TintinReporter {
 public:
+	static void log(const std::string& msg);
 	static void debug(const std::string& msg);
 	static void info(const std::string& msg);
 	static void warn(const std::string& msg);
@@ -26,13 +27,14 @@ private:
 	TintinReporter();
 	~TintinReporter();
 
+	void logLog(const std::string& msg);
 	void logDebug(const std::string& msg);
 	void logInfo(const std::string& msg);
 	void logWarn(const std::string& msg);
 	void logError(const std::string& msg);
 	void logFatal(const std::string& msg);
 
-	void		log(const std::string& level, const std::string& msg);
+	void		writeLog(const std::string& level, const std::string& msg);
 	std::string	getTimestamp();
 
 	std::ofstream logFile;
