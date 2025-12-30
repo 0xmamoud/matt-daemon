@@ -10,11 +10,11 @@ MattDaemon::MattDaemon() : serverFd(-1), epollFd(-1), clientCount(0) {
 		close(lockFd);
 		throw std::runtime_error("Daemon already running");
 	}
-	TintinReporter::info("Matt Daemon Lock acquired");
+	TintinReporter::info("Matt_daemon: Lock acquired");
 }
 
 MattDaemon::~MattDaemon() {
-	TintinReporter::info("Matt Daemon exiting");
+	TintinReporter::info("Matt_daemon: Quitting");
 	if (epollFd >= 0)
 		close(epollFd);
 	if (serverFd >= 0)
@@ -25,11 +25,11 @@ MattDaemon::~MattDaemon() {
 }
 
 int MattDaemon::createDaemon() {
-	TintinReporter::info("Entering daemon mode");
+	TintinReporter::info("Matt_daemon: Entering daemon mode");
 
 	pid_t pid = fork();
 	if (pid < 0) {
-		TintinReporter::error("First fork failed");
+		TintinReporter::error("Matt_daemon: First fork failed");
 		return -1;
 	}
 	if (pid > 0)
@@ -39,7 +39,7 @@ int MattDaemon::createDaemon() {
 
 	pid = fork();
 	if (pid < 0) {
-		TintinReporter::error("Second fork failed");
+		TintinReporter::error("Matt_daemon: Second fork failed");
 		return -1;
 	}
 	if (pid > 0)
@@ -52,20 +52,20 @@ int MattDaemon::createDaemon() {
 	close(STDOUT_FILENO);
 	close(STDERR_FILENO);
 
-	TintinReporter::info("Daemon started, PID: " + std::to_string(getpid()));
+	TintinReporter::info("Matt_daemon: Started. PID: " + std::to_string(getpid()));
 	return 0;
 }
 
 int MattDaemon::createServer() {
 	serverFd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (serverFd < 0) {
-		TintinReporter::error("Socket creation failed");
+		TintinReporter::error("Matt_daemon: Socket creation failed");
 		return -1;
 	}
 
 	int opt = 1;
 	if (setsockopt(serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
-		TintinReporter::error("setsockopt failed");
+		TintinReporter::error("Matt_daemon: setsockopt failed");
 		return -1;
 	}
 
@@ -75,18 +75,18 @@ int MattDaemon::createServer() {
 	addr.sin_port = htons(PORT);
 
 	if (bind(serverFd, (struct sockaddr*)&addr, sizeof(addr)) < 0) {
-		TintinReporter::error("Bind failed");
+		TintinReporter::error("Matt_daemon: Bind failed");
 		return -1;
 	}
 
 	if (listen(serverFd, MAX_CLIENTS) < 0) {
-		TintinReporter::error("Listen failed");
+		TintinReporter::error("Matt_daemon: Listen failed");
 		return -1;
 	}
 
 	epollFd = epoll_create1(0);
 	if (epollFd < 0) {
-		TintinReporter::error("epoll_create1 failed");
+		TintinReporter::error("Matt_daemon: epoll_create1 failed");
 		return -1;
 	}
 
@@ -94,25 +94,25 @@ int MattDaemon::createServer() {
 	ev.events = EPOLLIN;
 	ev.data.fd = serverFd;
 	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, serverFd, &ev) < 0) {
-		TintinReporter::error("epoll_ctl failed");
+		TintinReporter::error("Matt_daemon: epoll_ctl failed");
 		return -1;
 	}
 
-	TintinReporter::info("Server created on port " + std::to_string(PORT));
+	TintinReporter::info("Matt_daemon: Server created on port " + std::to_string(PORT));
 	return 0;
 }
 
 void MattDaemon::runServer() {
 	struct epoll_event events[MAX_CLIENTS + 1];
 
-	TintinReporter::info("Server started");
+	TintinReporter::info("Matt_daemon: Server started");
 
 	while (SignalHandler::isRunning()) {
 		int nfds = epoll_wait(epollFd, events, MAX_CLIENTS + 1, 1000);
 		if (nfds < 0) {
 			if (errno == EINTR)
 				continue;
-			TintinReporter::error("epoll_wait failed");
+			TintinReporter::error("Matt_daemon: epoll_wait failed");
 			break;
 		}
 
@@ -125,20 +125,20 @@ void MattDaemon::runServer() {
 		}
 	}
 
-	TintinReporter::info("Server stopped");
+	TintinReporter::info("Matt_daemon: Server stopped");
 }
 
 void MattDaemon::handleNewConnection() {
 	int clientFd = accept4(serverFd, nullptr, nullptr, SOCK_NONBLOCK);
 	if (clientFd < 0) {
 		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			TintinReporter::error("Accept failed");
+			TintinReporter::error("Matt_daemon: Accept failed");
 		return;
 	}
 
 	if (clientCount >= MAX_CLIENTS) {
 		close(clientFd);
-		TintinReporter::warn("Max clients reached, connection refused");
+		TintinReporter::warn("Matt_daemon: Max clients reached, connection refused");
 		return;
 	}
 
@@ -147,12 +147,12 @@ void MattDaemon::handleNewConnection() {
 	ev.data.fd = clientFd;
 	if (epoll_ctl(epollFd, EPOLL_CTL_ADD, clientFd, &ev) < 0) {
 		close(clientFd);
-		TintinReporter::error("epoll_ctl ADD failed");
+		TintinReporter::error("Matt_daemon: epoll_ctl ADD failed");
 		return;
 	}
 
 	clientCount++;
-	TintinReporter::info("Client connected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
+	TintinReporter::info("Matt_daemon: Client connected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
 }
 
 void MattDaemon::handleMessage(int clientFd) {
@@ -163,7 +163,7 @@ void MattDaemon::handleMessage(int clientFd) {
 		epoll_ctl(epollFd, EPOLL_CTL_DEL, clientFd, nullptr);
 		close(clientFd);
 		clientCount--;
-		TintinReporter::info("Client disconnected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
+		TintinReporter::info("Matt_daemon: Client disconnected (" + std::to_string(clientCount) + "/" + std::to_string(MAX_CLIENTS) + ")");
 		return;
 	}
 
@@ -175,7 +175,7 @@ void MattDaemon::handleMessage(int clientFd) {
 	TintinReporter::log(msg);
 
 	if (msg == "quit") {
-		TintinReporter::info("Quit command received");
+		TintinReporter::info("Matt_daemon: Quit command received");
 		SignalHandler::stop();
 	}
 }

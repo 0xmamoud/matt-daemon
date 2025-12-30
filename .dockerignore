@@ -2,7 +2,7 @@
 .gitignore
 *.o
 obj/
-matt_daemon
+MattDaemon
 *.tar.gz
 .DS_Store
 .vscode

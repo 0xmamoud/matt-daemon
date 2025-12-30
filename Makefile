@@ -1,4 +1,4 @@
-NAME		= matt_daemon
+NAME		= MattDaemon
 
 # Compiler and flags
 CC			= c++

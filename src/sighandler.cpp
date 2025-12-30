@@ -14,7 +14,7 @@ void SignalHandler::setup() {
 	for (int sig : signals) {
 		sigaction(sig, &sa, nullptr);
 	}
-	TintinReporter::info("Signal handler initialized");
+	TintinReporter::info("Matt_daemon: Signal handler initialized");
 }
 
 bool SignalHandler::isRunning() {
@@ -26,7 +26,7 @@ void SignalHandler::stop() {
 }
 
 void SignalHandler::handler(int sig) {
-	TintinReporter::info("Signal received: " + signalName(sig));
+	TintinReporter::info("Matt_daemon: Signal received: " + signalName(sig));
 	running = 0;
 }
 
