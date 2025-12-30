@@ -167,6 +167,8 @@ void MattDaemon::handleMessage(int clientFd) {
 		return;
 	}
 
+	if (buffer[bytes - 1] == '\n')
+		bytes--;
 	buffer[bytes] = '\0';
 
 	std::string msg(buffer);
